@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace BreakTime
@@ -82,7 +83,7 @@ namespace BreakTime
 
             if (Visible)
             {
-                button1.Visible = _breakController.SnoozeAllowed;
+                button1.Visible = _breakController.SnoozeAllowed && _breakController.Settings.AllowSnoozing;
 
                 foreach(var screen in Screen.AllScreens)
                     if (!screen.Primary)
@@ -112,6 +113,20 @@ namespace BreakTime
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             e.Cancel = true;
+        }
+
+        private void contextMenuStrip1_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            closeToolStripMenuItem.Enabled = _breakController.Settings.AllowClosing;
+        }
+
+        private void closeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var forms = Application.OpenForms.Cast<Form>().ToList();
+            foreach(var form in forms)
+                form.Dispose();
+
+            Application.Exit();
         }
     }
 }

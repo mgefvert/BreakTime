@@ -1,0 +1,4 @@
+﻿TODO
+ - Different breaks in MainForm
+ - Settings
+ - Break hotkey

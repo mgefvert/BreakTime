@@ -42,7 +42,7 @@ namespace BreakTime
 
         public DateTime EndOfBreak { get; private set; }
         public DateTime EndOfSnooze { get; private set; }
-        private DateTime _lastBreakTime = DateTime.Now.AddMinutes(-60).AddSeconds(5);
+        private DateTime _lastBreakTime = DateTime.Now;
         private bool _additionalBreakDone = false;
 
         public NotifyIcon Notifier { get; set; }
