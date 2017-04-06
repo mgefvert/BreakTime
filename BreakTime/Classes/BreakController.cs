@@ -115,7 +115,10 @@ namespace BreakTime.Classes
             BreakForm.Hide();
 
             if (_currentBreakType == BreakType.Main)
+            {
                 _lastBreakTime = DateTime.Now;
+                _additionalBreakDone = false;
+            }
             else if (_currentBreakType == BreakType.Additional)
                 _additionalBreakDone = true;
         }
