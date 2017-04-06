@@ -111,6 +111,7 @@ namespace BreakTime
         private void BreakEnd()
         {
             BreakForm.Hide();
+            _lastBreakTime = DateTime.Now;
         }
 
         private void BreakStart()
