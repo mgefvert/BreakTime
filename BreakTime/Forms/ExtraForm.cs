@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace BreakTime
+namespace BreakTime.Forms
 {
     public partial class ExtraForm : Form
     {

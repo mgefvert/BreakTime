@@ -3,7 +3,7 @@ using System.Linq;
 using System.Windows.Forms;
 using Stateless;
 
-namespace BreakTime
+namespace BreakTime.Classes
 {
     public enum BreakType
     {
@@ -44,6 +44,7 @@ namespace BreakTime
         public DateTime EndOfSnooze { get; private set; }
         private DateTime _lastBreakTime = DateTime.Now;
         private bool _additionalBreakDone = false;
+        private BreakType _currentBreakType = BreakType.Main;
 
         public NotifyIcon Notifier { get; set; }
         public Form BreakForm { get; set; }
@@ -52,6 +53,7 @@ namespace BreakTime
         public BreakController()
         {
             _stateMachine = new StateMachine<BreakState, BreakTrigger>(BreakState.Waiting);
+            _stateMachine.OnUnhandledTrigger(delegate { /* Ignore */ });
 
             // Wait states
 
@@ -111,12 +113,16 @@ namespace BreakTime
         private void BreakEnd()
         {
             BreakForm.Hide();
-            _lastBreakTime = DateTime.Now;
+
+            if (_currentBreakType == BreakType.Main)
+                _lastBreakTime = DateTime.Now;
+            else if (_currentBreakType == BreakType.Additional)
+                _additionalBreakDone = true;
         }
 
         private void BreakStart()
         {
-            EndOfBreak = DateTime.Now.Add(Settings.MainBreakMinutes);
+            EndOfBreak = DateTime.Now.Add(_currentBreakType == BreakType.Main ? Settings.MainBreakMinutes : Settings.AdditionalBreakMinutes);
             BreakForm.Show();
         }
 
@@ -161,7 +167,7 @@ namespace BreakTime
 
                 var left = next.Item2 - DateTime.Now;
                 if (left.TotalSeconds < 0)
-                    _stateMachine.Fire(BreakTrigger.Break);
+                    BreakNow(next.Item1);
                 else if (left.TotalSeconds <= 10)
                     _stateMachine.Fire(BreakTrigger.Alert10Seconds);
                 else if (left.TotalMinutes <= 3)
@@ -182,6 +188,12 @@ namespace BreakTime
         public void Snooze()
         {
             _stateMachine.Fire(BreakTrigger.Snooze);
+        }
+
+        public void BreakNow(BreakType breakType)
+        {
+            _currentBreakType = breakType;
+            _stateMachine.Fire(BreakTrigger.Break);
         }
     }
 }

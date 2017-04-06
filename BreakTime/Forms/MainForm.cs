@@ -4,23 +4,37 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Windows.Forms;
+using BreakTime.Classes;
+using DotNetCommons.WinForms;
 
-namespace BreakTime
+namespace BreakTime.Forms
 {
     public partial class MainForm : Form
     {
         private readonly BreakController _breakController;
         private readonly List<ExtraForm> _extraForms = new List<ExtraForm>();
+        private readonly Hotkeys _hotkeys;
 
         public MainForm()
         {
             InitializeComponent();
 
+            _hotkeys = new Hotkeys(Handle);
+            _hotkeys.Add(WinApi.MOD_CONTROL | WinApi.MOD_WIN, (uint) Keys.F12, () => _breakController.BreakNow(BreakType.Main));
+            
             _breakController = new BreakController
             {
                 Notifier = notifyIcon1,
                 BreakForm = this
             };
+        }
+
+        protected override void WndProc(ref Message msg)
+        {
+            if (msg.Msg == WinApi.WM_HOTKEY)
+                _hotkeys.Process(ref msg);
+            else
+                base.WndProc(ref msg);
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -76,6 +90,7 @@ namespace BreakTime
 
         private void Form1_VisibleChanged(object sender, EventArgs e)
         {
+            Form1_Resize(this, EventArgs.Empty);
             ClearExtraForms();
 
             timer2_Tick(this, EventArgs.Empty);

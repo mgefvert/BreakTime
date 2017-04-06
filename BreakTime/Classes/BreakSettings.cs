@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BreakTime
+namespace BreakTime.Classes
 {
     public class BreakSettings
     {

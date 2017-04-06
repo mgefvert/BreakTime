@@ -55,7 +55,7 @@
     <StartupObject>BreakTime.Program</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>main.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\main.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Stateless, Version=3.0.0.0, Culture=neutral, PublicKeyToken=93038f0927583c9a, processorArchitecture=MSIL">
@@ -75,32 +75,32 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BreakSettings.cs" />
-    <Compile Include="BreakController.cs" />
-    <Compile Include="ExtraForm.cs">
+    <Compile Include="Classes\BreakSettings.cs" />
+    <Compile Include="Classes\BreakController.cs" />
+    <Compile Include="Forms\ExtraForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ExtraForm.Designer.cs">
+    <Compile Include="Forms\ExtraForm.Designer.cs">
       <DependentUpon>ExtraForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="MainForm.cs">
+    <Compile Include="Forms\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="MainForm.Designer.cs">
+    <Compile Include="Forms\MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="ExtraForm.resx">
+    <EmbeddedResource Include="Forms\ExtraForm.resx">
       <DependentUpon>ExtraForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="MainForm.resx">
+    <EmbeddedResource Include="Forms\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
-      <LastGenOutput>Resources1.Designer.cs</LastGenOutput>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -123,7 +123,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="main.ico" />
+    <None Include="Resources\main.ico" />
     <Content Include="ILMergeOrder.txt" />
     <Content Include="Todo.txt" />
   </ItemGroup>
@@ -138,6 +138,12 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\DotNetCommons\DotNetCommons.WinForms\DotNetCommons.WinForms.csproj">
+      <Project>{716AE81D-1017-462D-A5CD-5C57A68D0C0C}</Project>
+      <Name>DotNetCommons.WinForms</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

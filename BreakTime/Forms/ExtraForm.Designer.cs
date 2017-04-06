@@ -1,4 +1,6 @@
-﻿namespace BreakTime
+﻿using System;
+
+namespace BreakTime.Forms
 {
     partial class ExtraForm
     {
