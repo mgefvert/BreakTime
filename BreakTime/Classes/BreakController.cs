@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Windows.Forms;
+using DotNetCommons;
+using Microsoft.Win32;
 using Stateless;
 
 namespace BreakTime.Classes
@@ -38,12 +40,19 @@ namespace BreakTime.Classes
     public class BreakController
     {
         private readonly StateMachine<BreakState, BreakTrigger> _stateMachine;
-        public BreakSettings Settings { get; set; } = new BreakSettings();
+        private BreakSettings _settings = new BreakSettings();
+
+        public BreakSettings Settings
+        {
+            get { return _settings; }
+            set {
+                _settings = value;
+                SaveSettings();
+            }
+        }
 
         public DateTime EndOfBreak { get; private set; }
         public DateTime EndOfSnooze { get; private set; }
-        private DateTime _lastBreakTime = DateTime.Now;
-        private bool _additionalBreakDone = false;
         private BreakType _currentBreakType = BreakType.Main;
 
         public NotifyIcon Notifier { get; set; }
@@ -116,11 +125,11 @@ namespace BreakTime.Classes
 
             if (_currentBreakType == BreakType.Main)
             {
-                _lastBreakTime = DateTime.Now;
-                _additionalBreakDone = false;
+                _settings.LastBreakTime = DateTime.Now;
+                _settings.AdditionalBreakDone = false;
             }
             else if (_currentBreakType == BreakType.Additional)
-                _additionalBreakDone = true;
+                _settings.AdditionalBreakDone = true;
         }
 
         private void BreakStart()
@@ -144,9 +153,9 @@ namespace BreakTime.Classes
                     return new Tuple<BreakType, DateTime>(BreakType.None, DateTime.MaxValue);
             }
 
-            var main = _lastBreakTime.Add(Settings.MainBreakInterval);
-            var additional = Settings.UseAdditionalBreak && !_additionalBreakDone
-                ? _lastBreakTime.AddSeconds(Settings.MainBreakInterval.TotalSeconds / 2)
+            var main = _settings.LastBreakTime.Add(Settings.MainBreakInterval);
+            var additional = Settings.UseAdditionalBreak && !_settings.AdditionalBreakDone
+                ? _settings.LastBreakTime.AddSeconds(Settings.MainBreakInterval.TotalSeconds / 2)
                 : DateTime.MaxValue;
 
             if (additional < main)
@@ -197,6 +206,52 @@ namespace BreakTime.Classes
         {
             _currentBreakType = breakType;
             _stateMachine.Fire(BreakTrigger.Break);
+        }
+
+        public void LoadSettings()
+        {
+            var registry = Registry.CurrentUser.OpenSubKey(@"Software\Gefvert\BreakTime");
+            if (registry == null)
+                return;
+
+            using (registry)
+            {
+                _settings.AdditionalBreakDone = (int)registry.GetValue("AdditionalBreakDone", 0) != 0;
+                _settings.AdditionalBreakMinutesValue = (int)registry.GetValue("AdditionalBreakMinutes", 2);
+                _settings.AllowClosing = (int)registry.GetValue("AllowClosing", 0) != 0;
+                _settings.AllowSnoozing = (int)registry.GetValue("AllowSnoozing", 1) != 0;
+                _settings.TimeStopValue = (int)registry.GetValue("HoursEnd", 8);
+                _settings.TimeStartValue = (int)registry.GetValue("HoursStart", 18);
+                _settings.LastBreakTime = DateTime.Parse((string)registry.GetValue("LastBreak", DateTime.Now.ToISO8601String()));
+                _settings.MainBreakIntervalValue = (int)registry.GetValue("MainBreakInterval", 60);
+                _settings.MainBreakMinutesValue = (int)registry.GetValue("MainBreakMinutes", 3);
+                _settings.SnoozeTime = TimeSpan.FromMinutes((int)registry.GetValue("SnoozeTime", 5));
+                _settings.UseAdditionalBreak = (int)registry.GetValue("UseAdditionalBreak", 0) != 0;
+                _settings.UseHours = (int)registry.GetValue("UseHours", 1) != 0;
+            }
+        }
+
+        public void SaveSettings()
+        {
+            var registry = Registry.CurrentUser.CreateSubKey(@"Software\Gefvert\BreakTime");
+            if (registry == null)
+                throw new Exception("Unable to persist settings to registry.");
+
+            using (registry)
+            {
+                registry.SetValue("AdditionalBreakDone", _settings.AdditionalBreakDone ? 1 : 0);
+                registry.SetValue("AdditionalBreakMinutes", _settings.AdditionalBreakMinutesValue);
+                registry.SetValue("AllowClosing", _settings.AllowClosing ? 1 : 0);
+                registry.SetValue("AllowSnoozing", _settings.AllowSnoozing ? 1 : 0);
+                registry.SetValue("HoursEnd", _settings.TimeStopValue);
+                registry.SetValue("HoursStart", _settings.TimeStartValue);
+                registry.SetValue("LastBreak", _settings.LastBreakTime.ToISO8601String());
+                registry.SetValue("MainBreakInterval", _settings.MainBreakIntervalValue);
+                registry.SetValue("MainBreakMinutes", _settings.MainBreakMinutesValue);
+                registry.SetValue("SnoozeTime", (int)_settings.SnoozeTime.TotalMinutes);
+                registry.SetValue("UseAdditionalBreak", _settings.UseAdditionalBreak ? 1 : 0);
+                registry.SetValue("UseHours", _settings.UseHours ? 1 : 0);
+            }
         }
     }
 }

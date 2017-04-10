@@ -45,6 +45,7 @@ namespace BreakTime.Forms
         private void Form1_Load(object sender, EventArgs e)
         {
             BackgroundImage = GenerateBackgroundImage();
+            _breakController.LoadSettings();
         }
 
         public static Bitmap GenerateBackgroundImage()
@@ -142,6 +143,17 @@ namespace BreakTime.Forms
                 form.Dispose();
 
             Application.Exit();
+        }
+
+        private void toolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            var settings = _breakController.Settings.Clone();
+
+            using (var form = new SettingsForm(settings))
+            {
+                if (form.ShowDialog() == DialogResult.OK)
+                    _breakController.Settings = settings;
+            }
         }
     }
 }

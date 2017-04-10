@@ -89,6 +89,12 @@
     <Compile Include="Forms\MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\SettingsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\SettingsForm.Designer.cs">
+      <DependentUpon>SettingsForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Forms\ExtraForm.resx">
@@ -96,6 +102,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\SettingsForm.resx">
+      <DependentUpon>SettingsForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -109,6 +118,7 @@
     </Compile>
     <None Include="ILMerge.props" />
     <None Include="packages.config" />
+    <None Include="Properties\DataSources\BreakTime.Classes.BreakSettings.datasource" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -143,6 +153,10 @@
     <ProjectReference Include="..\..\DotNetCommons\DotNetCommons.WinForms\DotNetCommons.WinForms.csproj">
       <Project>{716AE81D-1017-462D-A5CD-5C57A68D0C0C}</Project>
       <Name>DotNetCommons.WinForms</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\DotNetCommons\DotNetCommons\DotNetCommons.csproj">
+      <Project>{A86D8B8B-D601-4EB9-AA0A-E03372ACC104}</Project>
+      <Name>DotNetCommons</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
