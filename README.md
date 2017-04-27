@@ -10,3 +10,7 @@ And, it's rather pretty.
 
 To add fortune cookies to the program: Simply drop a Unix fortune cookie file named "fortunes" into the 
 same folder as the program. (Make sure it's the normal format with cookies separated by a single %.)
+
+Just like this:
+
+<img src="screenshot.jpg">
