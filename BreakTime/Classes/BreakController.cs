@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Windows.Forms;
 using DotNetCommons;
+using DotNetCommons.WinForms;
 using Microsoft.Win32;
 using Stateless;
 
@@ -44,7 +45,7 @@ namespace BreakTime.Classes
 
         public BreakSettings Settings
         {
-            get { return _settings; }
+            get => _settings;
             set {
                 _settings = value;
                 SaveSettings();
@@ -57,6 +58,7 @@ namespace BreakTime.Classes
 
         public NotifyIcon Notifier { get; set; }
         public Form BreakForm { get; set; }
+
         public bool SnoozeAllowed => _stateMachine.PermittedTriggers.Any(x => x == BreakTrigger.Snooze);
 
         public BreakController()
@@ -78,7 +80,7 @@ namespace BreakTime.Classes
 
             _stateMachine.Configure(BreakState.Alert10Seconds)
                 .SubstateOf(BreakState.Waiting)
-                .OnEntry(() => Notify("A break is imminent. Stop working."))
+                .OnEntry(() => Notify("A break is imminent. Stop working.", 9000))
                 .Ignore(BreakTrigger.Alert3Minutes)
                 .Ignore(BreakTrigger.Alert10Seconds);
 
@@ -103,7 +105,8 @@ namespace BreakTime.Classes
             // Snoozing state
 
             _stateMachine.Configure(BreakState.Snoozing)
-                .OnEntry(SnoozeStart);
+                .OnEntry(SnoozeStart)
+                .Permit(BreakTrigger.Completed, BreakState.Waiting);
 
             _stateMachine.Configure(BreakState.Snoozing1)
                 .SubstateOf(BreakState.Snoozing)
@@ -112,11 +115,6 @@ namespace BreakTime.Classes
             _stateMachine.Configure(BreakState.Snoozing2)
                 .SubstateOf(BreakState.Snoozing)
                 .Permit(BreakTrigger.Break, BreakState.BreakingAfterSnoozing2);
-        }
-
-        private void SnoozeStart()
-        {
-            EndOfSnooze = DateTime.Now.Add(Settings.SnoozeTime);
         }
 
         private void BreakEnd()
@@ -132,10 +130,24 @@ namespace BreakTime.Classes
                 _settings.AdditionalBreakDone = true;
         }
 
+        public void BreakNow(BreakType breakType)
+        {
+            _currentBreakType = breakType;
+            _stateMachine.Fire(BreakTrigger.Break);
+        }
+
         private void BreakStart()
         {
             EndOfBreak = DateTime.Now.Add(_currentBreakType == BreakType.Main ? Settings.MainBreakMinutes : Settings.AdditionalBreakMinutes);
             BreakForm.Show();
+        }
+
+        public void Reset()
+        {
+            Settings.LastBreakTime = DateTime.Now;
+            Settings.AdditionalBreakDone = false;
+
+            _stateMachine.Fire(BreakTrigger.Completed);
         }
 
         public Tuple<BreakType, DateTime> NextBreak()
@@ -164,18 +176,28 @@ namespace BreakTime.Classes
             return new Tuple<BreakType, DateTime>(BreakType.Main, main);
         }
 
-        public void Notify(string message)
+        public void Notify(string message, int delay = 3000)
         {
-            Notifier.ShowBalloonTip(3000, "Upcoming break", message, ToolTipIcon.Info);
+            Notifier.ShowBalloonTip(delay, "Upcoming break", message, ToolTipIcon.Info);
         }
 
-        public void Tick()
+        public void Snooze()
+        {
+            _stateMachine.Fire(BreakTrigger.Snooze);
+        }
+
+        private void SnoozeStart()
+        {
+            EndOfSnooze = DateTime.Now.Add(Settings.SnoozeTime);
+        }
+
+        public TimeSpan? Tick()
         {
             if (_stateMachine.IsInState(BreakState.Waiting))
             {
                 var next = NextBreak();
                 if (next.Item1 == BreakType.None)
-                    return;
+                    return null;
 
                 var left = next.Item2 - DateTime.Now;
                 if (left.TotalSeconds < 0)
@@ -184,8 +206,11 @@ namespace BreakTime.Classes
                     _stateMachine.Fire(BreakTrigger.Alert10Seconds);
                 else if (left.TotalMinutes <= 3)
                     _stateMachine.Fire(BreakTrigger.Alert3Minutes);
+
+                return left;
             }
-            else if (_stateMachine.IsInState(BreakState.Breaking))
+
+            if (_stateMachine.IsInState(BreakState.Breaking))
             {
                 if (DateTime.Now > EndOfBreak)
                     _stateMachine.Fire(BreakTrigger.Completed);
@@ -195,17 +220,8 @@ namespace BreakTime.Classes
                 if (DateTime.Now > EndOfSnooze)
                     _stateMachine.Fire(BreakTrigger.Break);
             }
-        }
 
-        public void Snooze()
-        {
-            _stateMachine.Fire(BreakTrigger.Snooze);
-        }
-
-        public void BreakNow(BreakType breakType)
-        {
-            _currentBreakType = breakType;
-            _stateMachine.Fire(BreakTrigger.Break);
+            return null;
         }
 
         public void LoadSettings()
@@ -228,6 +244,16 @@ namespace BreakTime.Classes
                 _settings.SnoozeTime = TimeSpan.FromMinutes((int)registry.GetValue("SnoozeTime", 5));
                 _settings.UseAdditionalBreak = (int)registry.GetValue("UseAdditionalBreak", 0) != 0;
                 _settings.UseHours = (int)registry.GetValue("UseHours", 1) != 0;
+            }
+
+            // Check if last break time is valid by checking the system boot time, as well as if the interval exceeds
+            // the break time by 50%. If so, we assume the machine was turned off.
+            var timeSinceLastBreak = DateTime.Now - _settings.LastBreakTime;
+            var timeSinceLastBoot = TimeSpan.FromMilliseconds(WinApi.GetTickCount64());
+            if (timeSinceLastBoot < timeSinceLastBreak || timeSinceLastBreak.TotalSeconds > _settings.MainBreakInterval.TotalSeconds * 1.5)
+            {
+                // The system was restarted between now and the last break. Reset the system.
+                Reset();
             }
         }
 

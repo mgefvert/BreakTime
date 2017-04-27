@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Specialized;
-using Microsoft.Win32;
 
 namespace BreakTime.Classes
 {
@@ -24,32 +22,32 @@ namespace BreakTime.Classes
 
         public int AdditionalBreakMinutesValue
         {
-            get { return (int)AdditionalBreakMinutes.TotalMinutes; }
-            set { AdditionalBreakMinutes = TimeSpan.FromMinutes(value); }
+            get => (int)AdditionalBreakMinutes.TotalMinutes;
+            set => AdditionalBreakMinutes = TimeSpan.FromMinutes(value);
         }
 
         public int MainBreakIntervalValue
         {
-            get { return (int)MainBreakInterval.TotalMinutes; }
-            set { MainBreakInterval = TimeSpan.FromMinutes(value); }
+            get => (int)MainBreakInterval.TotalMinutes;
+            set => MainBreakInterval = TimeSpan.FromMinutes(value);
         }
 
         public int MainBreakMinutesValue
         {
-            get { return (int)MainBreakMinutes.TotalMinutes; }
-            set { MainBreakMinutes = TimeSpan.FromMinutes(value); }
+            get => (int)MainBreakMinutes.TotalMinutes;
+            set => MainBreakMinutes = TimeSpan.FromMinutes(value);
         }
 
         public int TimeStartValue
         {
-            get { return (int)TimeStart.TotalHours; }
-            set { TimeStart = TimeSpan.FromHours(value); }
+            get => (int)TimeStart.TotalHours;
+            set => TimeStart = TimeSpan.FromHours(value);
         }
 
         public int TimeStopValue
         {
-            get { return (int)TimeStop.TotalHours; }
-            set { TimeStop = TimeSpan.FromHours(value); }
+            get => (int)TimeStop.TotalHours;
+            set => TimeStop = TimeSpan.FromHours(value);
         }
 
         public BreakSettings Clone()
