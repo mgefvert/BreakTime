@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Windows.Forms;
 using BreakTime.Classes;
 using DotNetCommons.WinForms;
+
 // ReSharper disable LocalizableElement
 
 namespace BreakTime.Forms
@@ -24,7 +25,7 @@ namespace BreakTime.Forms
             InitializeComponent();
 
             _fortunes = new Fortunes(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? ".", "fortunes"));
-            fortuneLabel.Text = "";  // Blank out fortune cookie placeholder
+            _fortuneLabel.Text = "";  // Blank out fortune cookie placeholder
 
             _hotkeys = new Hotkeys(Handle);
             _hotkeys.Add(WinApi.MOD_CONTROL | WinApi.MOD_WIN, (uint) Keys.F12, () => _breakController.BreakNow(BreakType.Main));
@@ -36,7 +37,7 @@ namespace BreakTime.Forms
             };
             _breakController.LoadSettings();
 
-            Form1_Resize(this, EventArgs.Empty);
+            ResizeWindows();
         }
 
         protected override void WndProc(ref Message msg)
@@ -60,18 +61,23 @@ namespace BreakTime.Forms
                 base.WndProc(ref msg);
         }
 
-        private void timer1_Tick(object sender, EventArgs e)
+        private void ClearExtraForms()
         {
-            var left = _breakController.Tick();
+            foreach(var form in _extraForms)
+                form.Dispose();
 
-            notifyIcon1.Text = "BreakTime" +
-                               (left != null ? $" - break in {(int) left.Value.TotalMinutes} minutes" : "");
+            _extraForms.Clear();
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        private void CloseApplication()
         {
-            BackgroundImage = GenerateBackgroundImage();
-            _breakController.LoadSettings();
+            _breakController.SaveSettings();
+
+            var forms = Application.OpenForms.Cast<Form>().ToList();
+            foreach (var form in forms)
+                form.Dispose();
+
+            Application.Exit();
         }
 
         public static Bitmap GenerateBackgroundImage()
@@ -100,63 +106,16 @@ namespace BreakTime.Forms
             return result;
         }
 
-        private void Form1_Resize(object sender, EventArgs e)
+        private void ResizeWindows()
         {
-            timeLabel.Left = (ClientSize.Width - timeLabel.Width) / 2;
-            timeLabel.Top = (ClientSize.Height - timeLabel.Height) / 2;
+            var b = Screen.PrimaryScreen.Bounds;
+            SetBounds(b.X, b.Y, b.Width, b.Height, BoundsSpecified.All);
 
-            snoozeButton.Left = (ClientSize.Width - snoozeButton.Width) / 2;
-            snoozeButton.Top = timeLabel.Top + timeLabel.Height + 20;
-        }
+            _timeLabel.Left = (ClientSize.Width - _timeLabel.Width) / 2;
+            _timeLabel.Top = (ClientSize.Height - _timeLabel.Height) / 2;
 
-        private void Form1_VisibleChanged(object sender, EventArgs e)
-        {
-            Form1_Resize(this, EventArgs.Empty);
-            ClearExtraForms();
-            _breakController.SaveSettings();
-
-            timer2_Tick(this, EventArgs.Empty);
-            timer2.Enabled = Visible;
-
-            if (Visible)
-            {
-                var fortune = _fortunes.Random();
-                fortuneLabel.Text = fortune != null ? "“" + fortune + "”" : null;
-
-                snoozeButton.Visible = _breakController.SnoozeAllowed && _breakController.Settings.AllowSnoozing;
-
-                foreach (var screen in Screen.AllScreens)
-                    if (!screen.Primary)
-                    {
-                        var form = new ExtraForm();
-                        form.SetBounds(screen.Bounds.X, screen.Bounds.Y, screen.Bounds.Width, screen.Bounds.Height,
-                            BoundsSpecified.All);
-                        form.Show();
-
-                        _extraForms.Add(form);
-                    }
-            }
-            else
-                fortuneLabel.Text = "";
-        }
-
-        private void timer2_Tick(object sender, EventArgs e)
-        {
-            var left = (_breakController.EndOfBreak - DateTime.Now).ToString(@"m':'ss");
-            timeLabel.Text = left;
-        }
-
-        private void ClearExtraForms()
-        {
-            foreach(var form in _extraForms)
-                form.Dispose();
-
-            _extraForms.Clear();
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            _breakController.Snooze();
+            _snoozeButton.Left = (ClientSize.Width - _snoozeButton.Width) / 2;
+            _snoozeButton.Top = _timeLabel.Top + _timeLabel.Height + 20;
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -165,20 +124,73 @@ namespace BreakTime.Forms
             e.Cancel = true;
         }
 
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            BackgroundImage = GenerateBackgroundImage();
+            _breakController.LoadSettings();
+        }
+
+        private void MainForm_Resize(object sender, EventArgs e)
+        {
+            ResizeWindows();
+        }
+
+        private void MainForm_VisibleChanged(object sender, EventArgs e)
+        {
+            ClearExtraForms();
+            _breakController.SaveSettings();
+
+            displayTimer_Tick(this, EventArgs.Empty);
+            displayTimer.Enabled = Visible;
+
+            if (Visible)
+            {
+                ResizeWindows();
+
+                var fortune = _fortunes.Random();
+                _fortuneLabel.Text = fortune != null ? "“" + fortune + "”" : null;
+                _snoozeButton.Visible = _breakController.SnoozeAllowed && _breakController.Settings.AllowSnoozing;
+
+                foreach (var screen in Screen.AllScreens)
+                    if (!screen.Primary)
+                    {
+                        var form = new ExtraForm(screen);
+                        form.Show();
+
+                        _extraForms.Add(form);
+                    }
+            }
+            else
+                _fortuneLabel.Text = "";
+        }
+
+        private void breakTimer_Tick(object sender, EventArgs e)
+        {
+            var left = _breakController.Tick();
+
+            notifyIcon1.Text = "BreakTime" +
+                               (left != null ? $" - break in {(int)left.Value.TotalMinutes} minutes" : "");
+        }
+
+        private void closeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CloseApplication();
+        }
+
         private void contextMenuStrip1_Opening(object sender, System.ComponentModel.CancelEventArgs e)
         {
             closeToolStripMenuItem.Enabled = _breakController.Settings.AllowClosing;
         }
 
-        private void closeToolStripMenuItem_Click(object sender, EventArgs e)
+        private void displayTimer_Tick(object sender, EventArgs e)
         {
-            _breakController.SaveSettings();
+            var left = (_breakController.EndOfBreak - DateTime.Now).ToString(@"m':'ss");
+            _timeLabel.Text = left;
+        }
 
-            var forms = Application.OpenForms.Cast<Form>().ToList();
-            foreach(var form in forms)
-                form.Dispose();
-
-            Application.Exit();
+        private void snoozeButton_Click(object sender, EventArgs e)
+        {
+            _breakController.Snooze();
         }
 
         private void toolStripMenuItem1_Click(object sender, EventArgs e)

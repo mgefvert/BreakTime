@@ -5,10 +5,21 @@ namespace BreakTime.Forms
 {
     public partial class ExtraForm : Form
     {
-        public ExtraForm()
+        private readonly Screen _screen;
+
+        public ExtraForm(Screen screen)
         {
             InitializeComponent();
+            _screen = screen;
+            ResizeWindow();
         }
+
+        private void ResizeWindow()
+        {
+            var b = _screen.Bounds;
+            SetBounds(b.X, b.Y, b.Width, b.Height, BoundsSpecified.All);
+        }
+
         private void Form1_Load(object sender, EventArgs e)
         {
             BackgroundImage = MainForm.GenerateBackgroundImage();
