@@ -234,7 +234,7 @@ namespace BreakTime.Classes
             {
                 _settings.AdditionalBreakDone = (int)registry.GetValue("AdditionalBreakDone", 0) != 0;
                 _settings.AdditionalBreakMinutesValue = (int)registry.GetValue("AdditionalBreakMinutes", 2);
-                _settings.AllowClosing = (int)registry.GetValue("AllowClosing", 0) != 0;
+                _settings.AllowClosing = false;
                 _settings.AllowSnoozing = (int)registry.GetValue("AllowSnoozing", 1) != 0;
                 _settings.TimeStopValue = (int)registry.GetValue("HoursEnd", 8);
                 _settings.TimeStartValue = (int)registry.GetValue("HoursStart", 18);
