@@ -5,6 +5,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Windows.Forms;
 using BreakTime.Classes;
 using DotNetCommons.WinForms;
@@ -138,7 +139,6 @@ namespace BreakTime.Forms
         private void MainForm_VisibleChanged(object sender, EventArgs e)
         {
             ClearExtraForms();
-            _breakController.SaveSettings();
 
             displayTimer_Tick(this, EventArgs.Empty);
             displayTimer.Enabled = Visible;
@@ -162,6 +162,8 @@ namespace BreakTime.Forms
             }
             else
                 _fortuneLabel.Text = "";
+
+            ThreadPool.QueueUserWorkItem(state => { _breakController.SaveSettings(); });
         }
 
         private void breakTimer_Tick(object sender, EventArgs e)

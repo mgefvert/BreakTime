@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Windows.Forms;
-using DotNetCommons;
+using DotNetCommons.Temporal;
 using DotNetCommons.WinForms;
 using Microsoft.Win32;
 using Stateless;
@@ -40,6 +40,7 @@ namespace BreakTime.Classes
 
     public class BreakController
     {
+        private volatile bool _saving;
         private readonly StateMachine<BreakState, BreakTrigger> _stateMachine;
         private BreakSettings _settings = new BreakSettings();
 
@@ -259,24 +260,38 @@ namespace BreakTime.Classes
 
         public void SaveSettings()
         {
-            var registry = Registry.CurrentUser.CreateSubKey(@"Software\Gefvert\BreakTime");
-            if (registry == null)
-                throw new Exception("Unable to persist settings to registry.");
-
-            using (registry)
+            lock (this)
             {
-                registry.SetValue("AdditionalBreakDone", _settings.AdditionalBreakDone ? 1 : 0);
-                registry.SetValue("AdditionalBreakMinutes", _settings.AdditionalBreakMinutesValue);
-                registry.SetValue("AllowClosing", _settings.AllowClosing ? 1 : 0);
-                registry.SetValue("AllowSnoozing", _settings.AllowSnoozing ? 1 : 0);
-                registry.SetValue("HoursEnd", _settings.TimeStopValue);
-                registry.SetValue("HoursStart", _settings.TimeStartValue);
-                registry.SetValue("LastBreak", _settings.LastBreakTime.ToISO8601String());
-                registry.SetValue("MainBreakInterval", _settings.MainBreakIntervalValue);
-                registry.SetValue("MainBreakMinutes", _settings.MainBreakMinutesValue);
-                registry.SetValue("SnoozeTime", (int)_settings.SnoozeTime.TotalMinutes);
-                registry.SetValue("UseAdditionalBreak", _settings.UseAdditionalBreak ? 1 : 0);
-                registry.SetValue("UseHours", _settings.UseHours ? 1 : 0);
+                if (_saving)
+                    return;
+
+                _saving = true;
+                try
+                {
+                    var registry = Registry.CurrentUser.CreateSubKey(@"Software\Gefvert\BreakTime");
+                    if (registry == null)
+                        throw new Exception("Unable to persist settings to registry.");
+
+                    using (registry)
+                    {
+                        registry.SetValue("AdditionalBreakDone", _settings.AdditionalBreakDone ? 1 : 0);
+                        registry.SetValue("AdditionalBreakMinutes", _settings.AdditionalBreakMinutesValue);
+                        registry.SetValue("AllowClosing", _settings.AllowClosing ? 1 : 0);
+                        registry.SetValue("AllowSnoozing", _settings.AllowSnoozing ? 1 : 0);
+                        registry.SetValue("HoursEnd", _settings.TimeStopValue);
+                        registry.SetValue("HoursStart", _settings.TimeStartValue);
+                        registry.SetValue("LastBreak", _settings.LastBreakTime.ToISO8601String());
+                        registry.SetValue("MainBreakInterval", _settings.MainBreakIntervalValue);
+                        registry.SetValue("MainBreakMinutes", _settings.MainBreakMinutesValue);
+                        registry.SetValue("SnoozeTime", (int) _settings.SnoozeTime.TotalMinutes);
+                        registry.SetValue("UseAdditionalBreak", _settings.UseAdditionalBreak ? 1 : 0);
+                        registry.SetValue("UseHours", _settings.UseHours ? 1 : 0);
+                    }
+                }
+                finally
+                {
+                    _saving = false;
+                }
             }
         }
     }
