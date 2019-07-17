@@ -30,11 +30,12 @@ namespace BreakTime.Forms
 
             _hotkeys = new Hotkeys(Handle);
             _hotkeys.Add(WinApi.MOD_CONTROL | WinApi.MOD_WIN, (uint) Keys.F12, () => _breakController.BreakNow(BreakType.Main));
-            
+
             _breakController = new BreakController
             {
                 Notifier = notifyIcon1,
-                BreakForm = this
+                BreakForm = this,
+                AlertForm = new AlertForm(Screen.PrimaryScreen)
             };
             _breakController.LoadSettings();
 
@@ -81,13 +82,13 @@ namespace BreakTime.Forms
             Application.Exit();
         }
 
-        public static Bitmap GenerateBackgroundImage()
+        public static Bitmap GenerateBackgroundImage(Color color1, Color color2)
         {
             var result = new Bitmap(256, 256, PixelFormat.Format32bppArgb);
 
             using (var g = Graphics.FromImage(result))
-            using (var pen1 = new Pen(Color.FromArgb(64, 64, 64)))
-            using (var pen2 = new Pen(Color.FromArgb(60, 60, 60)))
+            using (var pen1 = new Pen(color1))
+            using (var pen2 = new Pen(color2))
             {
                 for (var y = 0; y < result.Height; y++)
                 {
@@ -127,7 +128,7 @@ namespace BreakTime.Forms
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            BackgroundImage = GenerateBackgroundImage();
+            BackgroundImage = GenerateBackgroundImage(Color.FromArgb(64, 64, 64), Color.FromArgb(60, 60, 60));
             _breakController.LoadSettings();
         }
 

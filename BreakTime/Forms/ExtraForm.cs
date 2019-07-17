@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace BreakTime.Forms
@@ -22,7 +23,7 @@ namespace BreakTime.Forms
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            BackgroundImage = MainForm.GenerateBackgroundImage();
+            BackgroundImage = MainForm.GenerateBackgroundImage(Color.FromArgb(64, 64, 64), Color.FromArgb(60, 60, 60));
         }
 
         private void ExtraForm_FormClosing(object sender, FormClosingEventArgs e)

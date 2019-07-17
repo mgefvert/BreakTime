@@ -81,7 +81,6 @@ namespace BreakTime.Forms
             // breakTimer
             // 
             this.breakTimer.Enabled = true;
-            this.breakTimer.Interval = 1000;
             this.breakTimer.Tick += new System.EventHandler(this.breakTimer_Tick);
             // 
             // notifyIcon1

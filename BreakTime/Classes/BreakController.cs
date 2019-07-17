@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using BreakTime.Forms;
 using DotNetCommons.Temporal;
 using DotNetCommons.WinForms;
 using Microsoft.Win32;
@@ -18,8 +20,6 @@ namespace BreakTime.Classes
     public enum BreakState
     {
         Waiting,
-        Alert3Minutes,
-        Alert10Seconds,
         Breaking,
         BreakingFirstTime,
         BreakingAfterSnoozing1,
@@ -31,8 +31,6 @@ namespace BreakTime.Classes
 
     public enum BreakTrigger
     {
-        Alert3Minutes,
-        Alert10Seconds,
         Break,
         Snooze,
         Completed
@@ -43,6 +41,7 @@ namespace BreakTime.Classes
         private volatile bool _saving;
         private readonly StateMachine<BreakState, BreakTrigger> _stateMachine;
         private BreakSettings _settings = new BreakSettings();
+        private Random _rnd = new Random();
 
         public BreakSettings Settings
         {
@@ -59,6 +58,7 @@ namespace BreakTime.Classes
 
         public NotifyIcon Notifier { get; set; }
         public Form BreakForm { get; set; }
+        public AlertForm AlertForm { get; set; }
 
         public bool SnoozeAllowed => _stateMachine.PermittedTriggers.Any(x => x == BreakTrigger.Snooze);
 
@@ -70,20 +70,7 @@ namespace BreakTime.Classes
             // Wait states
 
             _stateMachine.Configure(BreakState.Waiting)
-                .Permit(BreakTrigger.Break, BreakState.BreakingFirstTime)
-                .Permit(BreakTrigger.Alert3Minutes, BreakState.Alert3Minutes)
-                .Permit(BreakTrigger.Alert10Seconds, BreakState.Alert10Seconds);
-
-            _stateMachine.Configure(BreakState.Alert3Minutes)
-                .SubstateOf(BreakState.Waiting)
-                .OnEntry(() => Notify("Upcoming break in 3 minutes."))
-                .Ignore(BreakTrigger.Alert3Minutes);
-
-            _stateMachine.Configure(BreakState.Alert10Seconds)
-                .SubstateOf(BreakState.Waiting)
-                .OnEntry(() => Notify("A break is imminent. Stop working.", 9000))
-                .Ignore(BreakTrigger.Alert3Minutes)
-                .Ignore(BreakTrigger.Alert10Seconds);
+                .Permit(BreakTrigger.Break, BreakState.BreakingFirstTime);
 
             // Breaking states
 
@@ -177,11 +164,6 @@ namespace BreakTime.Classes
             return new Tuple<BreakType, DateTime>(BreakType.Main, main);
         }
 
-        public void Notify(string message, int delay = 3000)
-        {
-            Notifier.ShowBalloonTip(delay, "Upcoming break", message, ToolTipIcon.Info);
-        }
-
         public void Snooze()
         {
             _stateMachine.Fire(BreakTrigger.Snooze);
@@ -198,27 +180,35 @@ namespace BreakTime.Classes
             {
                 var next = NextBreak();
                 if (next.Item1 == BreakType.None)
+                {
+                    AlertForm.UpdateState(null);
                     return null;
+                }
 
                 var left = next.Item2 - DateTime.Now;
+                AlertForm.UpdateState(left);
+
                 if (left.TotalSeconds < 0)
                     BreakNow(next.Item1);
-                else if (left.TotalSeconds <= 10)
-                    _stateMachine.Fire(BreakTrigger.Alert10Seconds);
-                else if (left.TotalMinutes <= 3)
-                    _stateMachine.Fire(BreakTrigger.Alert3Minutes);
 
                 return left;
             }
 
             if (_stateMachine.IsInState(BreakState.Breaking))
             {
+                AlertForm.UpdateState(null);
                 if (DateTime.Now > EndOfBreak)
                     _stateMachine.Fire(BreakTrigger.Completed);
+
+                if (_stateMachine.IsInState(BreakState.BreakingAfterSnoozing2))
+                    Cursor.Position = new Point(9999, 9999);
             }
             else if (_stateMachine.IsInState(BreakState.Snoozing))
             {
-                if (DateTime.Now > EndOfSnooze)
+                var left = EndOfSnooze - DateTime.Now;
+                AlertForm.UpdateState(left);
+
+                if (left.TotalSeconds < 0)
                     _stateMachine.Fire(BreakTrigger.Break);
             }
 
