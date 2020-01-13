@@ -41,7 +41,6 @@ namespace BreakTime.Classes
         private volatile bool _saving;
         private readonly StateMachine<BreakState, BreakTrigger> _stateMachine;
         private BreakSettings _settings = new BreakSettings();
-        private Random _rnd = new Random();
 
         public BreakSettings Settings
         {
@@ -65,7 +64,7 @@ namespace BreakTime.Classes
         public BreakController()
         {
             _stateMachine = new StateMachine<BreakState, BreakTrigger>(BreakState.Waiting);
-            _stateMachine.OnUnhandledTrigger(delegate { /* Ignore */ });
+            _stateMachine.OnUnhandledTrigger((state, trigger) => { });
 
             // Wait states
 

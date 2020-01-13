@@ -46,18 +46,18 @@ namespace BreakTime.Forms
         {
             switch (msg.Msg)
             {
-                case WinApi.WM_HOTKEY:
+                case (int)WinApi.WM.HOTKEY:
                     _hotkeys.Process(ref msg);
                     return;
 
-                case WinApi.WM_POWERBROADCAST:
+                case (int)WinApi.WM.POWERBROADCAST:
                     var reason = (int)msg.WParam;
                     if (reason == 0x18 || reason == 7) // Resumed from sleep
                         _breakController.Reset();
                     return;
             }
 
-            if (msg.Msg == WinApi.WM_HOTKEY)
+            if (msg.Msg == (int)WinApi.WM.HOTKEY)
                 _hotkeys.Process(ref msg);
             else
                 base.WndProc(ref msg);

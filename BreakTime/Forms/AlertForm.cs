@@ -13,7 +13,7 @@ namespace BreakTime.Forms
 
         protected override void WndProc(ref Message m)
         {
-            if (m.Msg == WinApi.WM_NCHITTEST)
+            if (m.Msg == (int)WinApi.WM.NCHITTEST)
             {
                 m.Result = (IntPtr)WinApi.HITTEST.HTTRANSPARENT;
                 return;
