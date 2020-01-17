@@ -1,21 +1,33 @@
 ﻿using System;
+using System.Threading;
 using System.Windows.Forms;
 using BreakTime.Forms;
 
 namespace BreakTime
 {
-    static class Program
+    internal static class Program
     {
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        private static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            using (new MainForm())
-                Application.Run();
+            var mutex = new Mutex(true, "org.gefvert.breaktime", out var created);
+            try
+            {
+                if (!created)
+                    return;
+                
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                using (new MainForm())
+                    Application.Run();
+            }
+            finally
+            {
+                mutex.Dispose();
+            }
         }
     }
 }
