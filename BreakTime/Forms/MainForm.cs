@@ -20,7 +20,8 @@ namespace BreakTime.Forms
         private readonly List<ExtraForm> _extraForms = new List<ExtraForm>();
         private readonly Hotkeys _hotkeys;
         private readonly Fortunes _fortunes;
-        private DebugForm _debugForm;
+        private readonly DebugForm _debugForm;
+        private DateTime _lastTick = DateTime.UtcNow;
 
         public MainForm()
         {
@@ -52,12 +53,6 @@ namespace BreakTime.Forms
             {
                 case (int)WinApi.WM.HOTKEY:
                     _hotkeys.Process(ref msg);
-                    return;
-
-                case (int)WinApi.WM.POWERBROADCAST:
-                    var reason = (int)msg.WParam;
-                    if (reason == 0x18 || reason == 7) // Resumed from sleep
-                        _breakController.Reset();
                     return;
             }
 
@@ -171,6 +166,15 @@ namespace BreakTime.Forms
 
         private void breakTimer_Tick(object sender, EventArgs e)
         {
+            var now = DateTime.UtcNow;
+            if ((now - _lastTick).TotalMinutes > 1)
+            {
+                // A sudden jump in time. Computer was probably suspended or hibernated.
+                _breakController.Reset();
+            }
+
+            _lastTick = now;
+
             var left = _breakController.Tick();
 
             notifyIcon1.Text = "BreakTime" +

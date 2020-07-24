@@ -9,8 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetCommons", "..\DotNetC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetCommons.WinForms", "..\DotNetCommons\src\DotNetCommons.WinForms\DotNetCommons.WinForms.csproj", "{4C511417-DF39-4509-ACC5-79D4A2D49578}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{36CD3E9F-C6E1-43F8-A7BB-FD97EBEF863D}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,10 +27,6 @@ Global
 		{4C511417-DF39-4509-ACC5-79D4A2D49578}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4C511417-DF39-4509-ACC5-79D4A2D49578}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4C511417-DF39-4509-ACC5-79D4A2D49578}.Release|Any CPU.Build.0 = Release|Any CPU
-		{36CD3E9F-C6E1-43F8-A7BB-FD97EBEF863D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{36CD3E9F-C6E1-43F8-A7BB-FD97EBEF863D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{36CD3E9F-C6E1-43F8-A7BB-FD97EBEF863D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{36CD3E9F-C6E1-43F8-A7BB-FD97EBEF863D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
