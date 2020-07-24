@@ -20,6 +20,7 @@ namespace BreakTime.Forms
         private readonly List<ExtraForm> _extraForms = new List<ExtraForm>();
         private readonly Hotkeys _hotkeys;
         private readonly Fortunes _fortunes;
+        private DebugForm _debugForm;
 
         public MainForm()
         {
@@ -39,6 +40,9 @@ namespace BreakTime.Forms
             };
             _breakController.LoadSettings();
 
+            BackgroundImage = GenerateBackgroundImage(Color.FromArgb(64, 64, 64), Color.FromArgb(60, 60, 60));
+
+            _debugForm = new DebugForm(_breakController);
             ResizeWindows();
         }
 
@@ -110,7 +114,7 @@ namespace BreakTime.Forms
 
         private void ResizeWindows()
         {
-            var b = Screen.PrimaryScreen.Bounds;
+            var b = Screen.AllScreens.First(x => x.Primary).Bounds;
             SetBounds(b.X, b.Y, b.Width, b.Height, BoundsSpecified.All);
 
             _timeLabel.Left = (ClientSize.Width - _timeLabel.Width) / 2;
@@ -128,8 +132,6 @@ namespace BreakTime.Forms
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            BackgroundImage = GenerateBackgroundImage(Color.FromArgb(64, 64, 64), Color.FromArgb(60, 60, 60));
-            _breakController.LoadSettings();
         }
 
         private void MainForm_Resize(object sender, EventArgs e)
@@ -172,7 +174,7 @@ namespace BreakTime.Forms
             var left = _breakController.Tick();
 
             notifyIcon1.Text = "BreakTime" +
-                               (left != null ? $" - break in {(int)left.Value.TotalMinutes} minutes" : "");
+                (left != null ? $" - break in {(int) left.Value.TotalMinutes} minutes" : "");
         }
 
         private void closeToolStripMenuItem_Click(object sender, EventArgs e)
@@ -182,7 +184,8 @@ namespace BreakTime.Forms
 
         private void contextMenuStrip1_Opening(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            closeToolStripMenuItem.Enabled = _breakController.Settings.AllowClosing;
+            closeMenuItem.Enabled = _breakController.Settings.AllowClosing;
+            showDebugInfoMenuItem.Checked = _debugForm.Visible;
         }
 
         private void displayTimer_Tick(object sender, EventArgs e)
@@ -205,6 +208,11 @@ namespace BreakTime.Forms
                 if (form.ShowDialog() == DialogResult.OK)
                     _breakController.Settings = settings;
             }
+        }
+
+        private void showDebugInfoMenuItem_Click(object sender, EventArgs e)
+        {
+            _debugForm.Visible = !_debugForm.Visible;
         }
     }
 }

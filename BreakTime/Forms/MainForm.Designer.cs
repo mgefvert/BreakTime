@@ -37,19 +37,19 @@ namespace BreakTime.Forms
             this.breakTimer = new System.Windows.Forms.Timer(this.components);
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.settingsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.closeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.closeMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.displayTimer = new System.Windows.Forms.Timer(this.components);
             this._fortuneLabel = new System.Windows.Forms.Label();
+            this.showDebugInfoMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // _timeLabel
             // 
-            this._timeLabel.AutoSize = true;
             this._timeLabel.BackColor = System.Drawing.Color.Transparent;
-            this._timeLabel.Font = new System.Drawing.Font("Segoe UI", 128F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this._timeLabel.Font = new System.Drawing.Font("Segoe UI", 72F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this._timeLabel.ForeColor = System.Drawing.Color.White;
             this._timeLabel.Location = new System.Drawing.Point(234, 60);
             this._timeLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
@@ -81,6 +81,7 @@ namespace BreakTime.Forms
             // breakTimer
             // 
             this.breakTimer.Enabled = true;
+            this.breakTimer.Interval = 10;
             this.breakTimer.Tick += new System.EventHandler(this.breakTimer_Tick);
             // 
             // notifyIcon1
@@ -94,31 +95,32 @@ namespace BreakTime.Forms
             // contextMenuStrip1
             // 
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripMenuItem1,
+            this.settingsMenuItem,
+            this.showDebugInfoMenuItem,
             this.toolStripSeparator1,
-            this.closeToolStripMenuItem});
+            this.closeMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(126, 54);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(181, 98);
             this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
             // 
-            // toolStripMenuItem1
+            // settingsMenuItem
             // 
-            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(125, 22);
-            this.toolStripMenuItem1.Text = "Settings...";
-            this.toolStripMenuItem1.Click += new System.EventHandler(this.toolStripMenuItem1_Click);
+            this.settingsMenuItem.Name = "settingsMenuItem";
+            this.settingsMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.settingsMenuItem.Text = "Settings...";
+            this.settingsMenuItem.Click += new System.EventHandler(this.toolStripMenuItem1_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(122, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
             // 
-            // closeToolStripMenuItem
+            // closeMenuItem
             // 
-            this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
-            this.closeToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
-            this.closeToolStripMenuItem.Text = "Close";
-            this.closeToolStripMenuItem.Click += new System.EventHandler(this.closeToolStripMenuItem_Click);
+            this.closeMenuItem.Name = "closeMenuItem";
+            this.closeMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.closeMenuItem.Text = "Close";
+            this.closeMenuItem.Click += new System.EventHandler(this.closeToolStripMenuItem_Click);
             // 
             // displayTimer
             // 
@@ -126,17 +128,24 @@ namespace BreakTime.Forms
             // 
             // _fortuneLabel
             // 
-            this._fortuneLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            this._fortuneLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this._fortuneLabel.BackColor = System.Drawing.Color.Transparent;
-            this._fortuneLabel.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this._fortuneLabel.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this._fortuneLabel.ForeColor = System.Drawing.Color.DarkGray;
-            this._fortuneLabel.Location = new System.Drawing.Point(12, 362);
+            this._fortuneLabel.Location = new System.Drawing.Point(34, 29);
             this._fortuneLabel.Name = "_fortuneLabel";
-            this._fortuneLabel.Size = new System.Drawing.Size(786, 72);
+            this._fortuneLabel.Size = new System.Drawing.Size(722, 382);
             this._fortuneLabel.TabIndex = 2;
             this._fortuneLabel.Text = "Fortune";
-            this._fortuneLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // showDebugInfoMenuItem
+            // 
+            this.showDebugInfoMenuItem.Name = "showDebugInfoMenuItem";
+            this.showDebugInfoMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.showDebugInfoMenuItem.Text = "Show debug info";
+            this.showDebugInfoMenuItem.Click += new System.EventHandler(this.showDebugInfoMenuItem_Click);
             // 
             // MainForm
             // 
@@ -144,9 +153,9 @@ namespace BreakTime.Forms
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.DimGray;
             this.ClientSize = new System.Drawing.Size(810, 443);
-            this.Controls.Add(this._fortuneLabel);
             this.Controls.Add(this._snoozeButton);
             this.Controls.Add(this._timeLabel);
+            this.Controls.Add(this._fortuneLabel);
             this.DoubleBuffered = true;
             this.Font = new System.Drawing.Font("Segoe UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ForeColor = System.Drawing.Color.DimGray;
@@ -164,7 +173,6 @@ namespace BreakTime.Forms
             this.Resize += new System.EventHandler(this.MainForm_Resize);
             this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -176,10 +184,11 @@ namespace BreakTime.Forms
         private System.Windows.Forms.NotifyIcon notifyIcon1;
         private System.Windows.Forms.Timer displayTimer;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
-        private System.Windows.Forms.ToolStripMenuItem closeToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem closeMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem settingsMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.Label _fortuneLabel;
+        private System.Windows.Forms.ToolStripMenuItem showDebugInfoMenuItem;
     }
 }
 

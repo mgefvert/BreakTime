@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
@@ -38,9 +39,12 @@ namespace BreakTime.Classes
 
     public class BreakController
     {
-        private volatile bool _saving;
-        private readonly StateMachine<BreakState, BreakTrigger> _stateMachine;
+        private BreakType _currentBreakType = BreakType.Main;
+        private readonly OutlookMeetings _meetings = new OutlookMeetings();
+        private bool _saving;
         private BreakSettings _settings = new BreakSettings();
+        private readonly StateMachine<BreakState, BreakTrigger> _stateMachine;
+        private int _tickCounter;
 
         public BreakSettings Settings
         {
@@ -50,14 +54,15 @@ namespace BreakTime.Classes
                 SaveSettings();
             }
         }
-
+        
+        public AlertForm AlertForm { get; set; }
+        public Form BreakForm { get; set; }
         public DateTime EndOfBreak { get; private set; }
         public DateTime EndOfSnooze { get; private set; }
-        private BreakType _currentBreakType = BreakType.Main;
-
+        public DateTime LastBreak => _settings.LastBreakTime;
+        public IEnumerable<OutlookMeetings.OutlookMeeting> Meetings => _meetings.Meetings;
+        public Movement Movement { get; } = new Movement();
         public NotifyIcon Notifier { get; set; }
-        public Form BreakForm { get; set; }
-        public AlertForm AlertForm { get; set; }
 
         public bool SnoozeAllowed => _stateMachine.PermittedTriggers.Any(x => x == BreakTrigger.Snooze);
 
@@ -102,11 +107,14 @@ namespace BreakTime.Classes
             _stateMachine.Configure(BreakState.Snoozing2)
                 .SubstateOf(BreakState.Snoozing)
                 .Permit(BreakTrigger.Break, BreakState.BreakingAfterSnoozing2);
+
+            _meetings.Update();
         }
 
         private void BreakEnd()
         {
             BreakForm.Hide();
+            Movement.Reset();
 
             if (_currentBreakType == BreakType.Main)
             {
@@ -175,6 +183,33 @@ namespace BreakTime.Classes
 
         public TimeSpan? Tick()
         {
+            // Check for keyboard and mouse movement
+            Movement.CheckMotion();
+
+            // Only check every 100ms
+            _tickCounter++;
+            if (_tickCounter % 10 != 0)
+                return null;
+
+            // Extract counters; if we don't have any motion for a given time period, update the last break time so
+            // we don't needlessly trigger breaks without user activity
+            var counters = Movement.ExtractMotionCounters();
+            if (counters.Count >= 1)
+                _settings.LastBreakTime = _settings.LastBreakTime.AddMinutes(Movement.MinutesPerCounter * counters.Count(x => x < 100));
+
+            // Update Outlook meetings every 10 minutes
+            if ((DateTime.Now - _meetings.LastUpdate).TotalMinutes > 10)
+                _meetings.Update();
+
+            // Never break during a meeting
+            if (_meetings.InMeeting())
+            {
+                if (!_stateMachine.IsInState(BreakState.Waiting))
+                    _stateMachine.Fire(BreakTrigger.Completed);
+                return null;
+            }
+
+            // If we're in the waiting state
             if (_stateMachine.IsInState(BreakState.Waiting))
             {
                 var next = NextBreak();
@@ -193,6 +228,7 @@ namespace BreakTime.Classes
                 return left;
             }
 
+            // If we're in the breaking state
             if (_stateMachine.IsInState(BreakState.Breaking))
             {
                 AlertForm.UpdateState(null);
@@ -202,6 +238,7 @@ namespace BreakTime.Classes
                 if (_stateMachine.IsInState(BreakState.BreakingAfterSnoozing2))
                     Cursor.Position = new Point(9999, 9999);
             }
+            // ...or in the snoozing state
             else if (_stateMachine.IsInState(BreakState.Snoozing))
             {
                 var left = EndOfSnooze - DateTime.Now;
